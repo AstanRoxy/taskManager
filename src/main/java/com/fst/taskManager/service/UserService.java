@@ -1,84 +1,61 @@
 package com.fst.taskManager.service;
 
-import com.fst.taskManager.Enum.ERole;
-import com.fst.taskManager.dto.UserResponseDto;
-
-import com.fst.taskManager.exception.RessourceNotFoundException;
-import com.fst.taskManager.mapper.Mapper;
-import com.fst.taskManager.mapper.MyMapper;
-import com.fst.taskManager.model.Role;
 import com.fst.taskManager.model.User;
-import com.fst.taskManager.repository.RoleRepository;
 import com.fst.taskManager.repository.UserRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 
 @Service
-public class UserService implements UserServiceInterface {
+@Primary
+public class UserService implements UserDetailsService {
+
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private RoleRepository roleRepository;
 
-
-    @Autowired
-    public MyMapper myMapper;
-
-    @Override
-    public List<UserResponseDto> getAllClient() {
-        return userRepository.findAll().stream().map(UserResponseDto::new).toList();
+    public List<User> findAllUsers() {
+        return userRepository.findAll();
     }
 
-    @Override
-    public UserResponseDto getUserById(Long id) {
-        User user = userRepository.findById(id).orElseThrow(()->new RessourceNotFoundException("Aucun client trouver"));
-        return new UserResponseDto(user);
+    public Optional<User> findUserById(Long id) {
+        return userRepository.findById(id);
     }
 
-    @Override
-    public List<UserResponseDto> getClientByRole(String role) {
-        Role modRole;
-        if(Objects.equals(role, "client"))
-             modRole = roleRepository.findByName(ERole.ROLE_CLIENT).orElseThrow(()->new RessourceNotFoundException("Aucun client trouver"));
-        else {
-            modRole = new Role();
-        }
-        return userRepository.findAll().stream()
-                .filter(user1 -> user1.getRoles().stream()
-                .anyMatch(role1 -> role1.getName() == modRole.getName()))
-                .map(UserResponseDto::new)
-                .toList();
+    public User createUser(User user) {
+        return userRepository.save(user);
     }
 
-    @Override
-    public UserResponseDto create(UserResponseDto userResponseDto) {
-        User user =Mapper.getMapper().map(userResponseDto, User.class);
-        /*if(userRepository.existsByName(user.getName()))
-            throw new ConflictRessourceException("Ce nom existe déjà");*/
-        userRepository.save(user);
-        return Mapper.getMapper().map(user, UserResponseDto.class);
+    public User updateUser(Long id, User userDetails) {
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        user.setUsername(userDetails.getUsername());
+        user.setEmail(userDetails.getEmail());
+        user.setPassword(userDetails.getPassword());
+        return userRepository.save(user);
     }
 
-    @Override
-    public UserResponseDto updateClient(Long id, UserResponseDto userResponseDto) {
-        User user =Mapper.getMapper().map(userResponseDto, User.class);
-        user.setId(id);
-        User oldUser = userRepository.findById(id).orElseThrow(()-> new RessourceNotFoundException("Ce client n'existe pas"));
-       /* if( (userRepository.existsByName(user.getName()) & ! Objects.equals(oldUser.getName(), user.getName())))
-            throw new ConflictRessourceException("Ce nom existe déjà");*/
-        userRepository.save(user);
-        return Mapper.getMapper().map(user, UserResponseDto.class);
-    }
-
-    @Override
-    public String deleteClient(Long id) {
-        if(userRepository.findById(id).isEmpty())
-            throw new RessourceNotFoundException("Ce client n'existe pas");
+    public void deleteUser(Long id) {
         userRepository.deleteById(id);
-        return "Client supprimer avec succès";
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User userEntity = userRepository.findByUsernameWithRoles(username).orElseThrow(() ->
+                new UsernameNotFoundException("Utilisateur non trouvé: " + username));
+        return UserDetailsImpl.build(userEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public User getUserWithRoles(Long id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        user.getRoles().size(); // Initialiser les rôles
+        return user;
     }
 }

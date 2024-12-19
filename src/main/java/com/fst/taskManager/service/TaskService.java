@@ -1,40 +1,56 @@
 package com.fst.taskManager.service;
 
-import com.fst.taskManager.exception.CustomException;
 import com.fst.taskManager.model.Task;
 import com.fst.taskManager.repository.TaskRepository;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class TaskService {
-    private final TaskRepository taskRepository;
 
-    public List<Task> findAll() {
+    @Autowired
+    private TaskRepository taskRepository;
+
+    public List<Task> findAllTasks() {
         return taskRepository.findAll();
     }
 
-    public Optional<Task> findById(Long id) {
+    public Optional<Task> findTaskById(Long id) {
         return taskRepository.findById(id);
     }
 
-    public Task save(Task task) {
-        try {
-            return taskRepository.save(task); // Retourner l'objet Task
-        } catch (OptimisticLockingFailureException e) {
-            // Gérer le conflit ici, par exemple, en informant l'utilisateur
-            throw new CustomException("La tâche a été modifiée par un autre utilisateur.", e);
-        }
+    public List<Task> findTasksByUser(Long userId) {
+        return taskRepository.findByAssignedUserId(userId);
     }
 
-    @Transactional
-    public void delete(Long id) {
+    public List<Task> findTasksByDueDateBefore(Date dueDate) {
+        return taskRepository.findByDueDateBefore(dueDate);
+    }
+
+    public List<Task> findTasksByStatus(String status) {
+        return taskRepository.findByStatus(status);
+    }
+
+    public Task createTask(Task task) {
+        return taskRepository.save(task);
+    }
+
+    public Task updateTask(Long id, Task taskDetails) {
+        Task task = taskRepository.findById(id).orElseThrow(() -> new RuntimeException("Task not found"));
+        task.setTitle(taskDetails.getTitle());
+        task.setDescription(taskDetails.getDescription());
+        task.setStatus(taskDetails.getStatus());
+        task.setPriority(taskDetails.getPriority());
+        task.setDueDate(taskDetails.getDueDate());
+        task.setUpdatedDate(new Date());
+        return taskRepository.save(task);
+    }
+
+    public void deleteTask(Long id) {
         taskRepository.deleteById(id);
     }
 }

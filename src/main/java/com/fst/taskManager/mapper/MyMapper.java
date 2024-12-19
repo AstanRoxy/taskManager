@@ -1,4 +1,4 @@
-package com.fst.taskManager.mapper;
+/*package com.fst.taskManager.mapper;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
@@ -9,4 +9,4 @@ public class MyMapper {
         BeanUtils.copyProperties(s,d);
         return d;
     }
-}
+}*/

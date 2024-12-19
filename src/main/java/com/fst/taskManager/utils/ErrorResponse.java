@@ -1,4 +1,4 @@
-package com.fst.taskManager.utils;
+/*package com.fst.taskManager.utils;
 
 import java.time.Instant;
 
@@ -30,4 +30,4 @@ public class ErrorResponse {
     public String getTimestamp() {
         return timestamp;
     }
-}
+}*/

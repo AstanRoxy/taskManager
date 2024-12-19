@@ -1,6 +1,8 @@
 package com.fst.taskManager.dto.security.response;
 
+import lombok.Data;
 
+@Data
 public class MessageResponse {
     private String message;
 
@@ -8,11 +10,5 @@ public class MessageResponse {
         this.message = message;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
+    // getters and setters
 }

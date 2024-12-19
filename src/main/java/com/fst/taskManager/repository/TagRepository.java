@@ -1,11 +1,11 @@
 package com.fst.taskManager.repository;
 
-import com.fst.taskManager.model.Category;
+import com.fst.taskManager.model.Tag;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface CategoryRepository extends JpaRepository<Category, Long> {
+public interface TagRepository extends JpaRepository<Tag, Long> {
     // Ajoutez des méthodes de requête personnalisées si nécessaire
-    Category findByName(String name);
+    Tag findByName(String name);
 }

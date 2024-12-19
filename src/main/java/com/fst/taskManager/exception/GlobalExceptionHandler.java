@@ -1,30 +1,39 @@
 package com.fst.taskManager.exception;
 
-import com.fst.taskManager.utils.ErrorResponse;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
-@RestControllerAdvice
+import lombok.Data;
+
+@ControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler(RessourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(RessourceNotFoundException exception, HttpServletRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                HttpStatus.NOT_FOUND.value(),
-                exception.getMessage(),
-                request.getRequestURI()
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<?> resourceNotFoundException(ResourceNotFoundException ex, WebRequest request) {
+        ErrorDetails errorDetails = new ErrorDetails(ex.getMessage(), request.getDescription(false));
+        return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
     }
-    @ExceptionHandler(ConflictRessourceException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ConflictRessourceException exception, HttpServletRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                HttpStatus.CONFLICT.value(),
-                exception.getMessage(),
-                request.getRequestURI()
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> globalExceptionHandler(Exception ex, WebRequest request) {
+        ErrorDetails errorDetails = new ErrorDetails(ex.getMessage(), request.getDescription(false));
+        return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+}
+
+@Data
+class ErrorDetails {
+    private String message;
+    private String details;
+
+    public ErrorDetails(String message, String details) {
+        super();
+        this.message = message;
+        this.details = details;
+    }
+
+    // getters and setters
 }
